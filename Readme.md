@@ -1,4 +1,4 @@
-# Netra
+# Netra : Intelligent Traffic Surveillance
 
 Netra is an intelligent traffic surveillance system designed to monitor road conditions and automatically detect road accidents. The project leverages advanced computer vision and machine learning techniques to enhance road safety and provide real-time alerts.
 

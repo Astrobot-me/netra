@@ -1,24 +1,102 @@
-const AccidentPanel: React.FC<{ accidents: string[] }> = ({ accidents }) => (
-  <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg md:col-span-2">
-    <div className="p-3 border-b border-gray-700">
-      <h2 className="text-xl font-semibold">Accident</h2>
-    </div>
-    <div className="p-4 min-h-[200px]">
-      {accidents.length > 0 ? (
-        <ul className="space-y-2">
-          {accidents.map((accident, index) => (
-            <li key={index} className="p-3 bg-red-900/30 border border-red-700 rounded text-red-100">
-              <i className="fas fa-exclamation-triangle mr-2 text-yellow-500"></i>
-              {accident}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <div className="h-full flex items-center justify-center text-gray-500">
-          <p>No accidents detected</p>
+import React, { useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+export type AccidentData = {
+  detections: number;
+  consecutive_detections: number;
+  accident_state: boolean;
+  latitude: number;
+  longitude: number;
+  address: string;
+  timestamp: string;
+};
+
+type Props = {
+  liveData: AccidentData | null;
+};
+
+const LOCAL_STORAGE_KEY = 'accident_history';
+
+const AccidentPanel: React.FC<Props> = ({ liveData }) => {
+  const [accidents, setAccidents] = useState<AccidentData[]>([]);
+  const [latestAccident, setLatestAccident] = useState<AccidentData | null>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (saved) {
+      const parsed: AccidentData[] = JSON.parse(saved);
+      setAccidents(parsed);
+      if (parsed.length > 0) {
+        setLatestAccident(parsed[0]);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (liveData && liveData.accident_state) {
+      setAccidents((prev) => {
+        const updated = [liveData, ...prev];
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+        return updated;
+      });
+      setLatestAccident(liveData);
+    }
+  }, [liveData]);
+
+  const handleDispatch = (accident: AccidentData) => {
+    toast.success(`🚑 Notifying Emergency Dispatch Unit for ${accident.address}`);
+    // Future placeholder for backend/Firestore integration
+  };
+
+  return (
+    <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg md:col-span-2 mt-5">
+      <div className="p-3 border-b border-gray-700">
+        <h2 className="text-xl font-semibold">Accident</h2>
+      </div>
+      <div className="p-4 min-h-[500px] space-y-3">
+
+        {/* Show latest accident card if available */}
+        {latestAccident ? (
+          <div className="p-4 bg-red-900/30 border border-red-700 rounded text-red-100">
+            <p><i className="fas fa-exclamation-triangle text-yellow-500 mr-2" /> <strong>Accident Detected</strong></p>
+            <p><strong>Address:</strong> {latestAccident.address}</p>
+            <p><strong>Time:</strong> {new Date(latestAccident.timestamp).toLocaleTimeString()}</p>
+            <p><strong>Detections:</strong> {latestAccident.detections}</p>
+            <button
+              onClick={() => handleDispatch(latestAccident)}
+              className="mt-3 bg-red-700 hover:bg-red-800 text-white py-1 px-3 rounded"
+            >
+              Dispatch Emergency
+            </button>
+          </div>
+        ) : (
+          <div className="text-gray-400">✅ Everything is fine. No accident detected.</div>
+        )}
+
+        {/* History Section */}
+        <div className="mt-4">
+          <h3 className="text-lg font-semibold text-white mb-2">History</h3>
+          {accidents.length > 0 ? (
+            <ul className="space-y-2 max-h-[200px] overflow-y-auto">
+              {accidents.map((item, index) => (
+                <li key={index} className="p-3 bg-gray-700/50 border border-gray-600 rounded text-sm">
+                  <p><strong>{item.address}</strong></p>
+                  <p>
+                    <span className="text-yellow-400">Detections:</span> {item.detections},{" "}
+                    <span className="text-yellow-400">Consecutive:</span> {item.consecutive_detections}
+                  </p>
+                  <p><span className="text-gray-400">Time:</span> {new Date(item.timestamp).toLocaleString()}</p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-500">No past accidents recorded</p>
+          )}
         </div>
-      )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
+
 export default AccidentPanel;

@@ -2,15 +2,20 @@ import VideoPlayer from "./VideoPlayer";
 
 interface Lane {
   id: number;
+  lane_dir:string;
   signal: string;
   timing: number;
   src:string;
+ 
 }
 
 const LaneCard: React.FC<{ lane: Lane }> = ({ lane }) => (
   <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg">
     <div className="p-3 border-b border-gray-700 flex justify-between items-center">
-      <span className="text-xl font-semibold">Lane {lane.id}</span>
+      <div className="flex gap-2">
+        <span className="text-xl font-semibold uppercase text-cyan-500">{lane.lane_dir}</span>
+        <span className="text-xl font-semibold">Lane {lane.id}</span>
+      </div>
       <div className="flex items-center gap-3">
         <div className={`font-bold uppercase ${lane.signal === 'green' ? 'text-green-500' : 'text-red-500'}`}> {lane.signal === 'green' ? 'Green Signal' : 'Red Signal'}</div>
         <div className={`w-6 h-6 rounded-full ${lane.signal === 'green' ? 'bg-green-500' : 'bg-red-500'} flex items-center justify-center`}>
@@ -28,7 +33,7 @@ const LaneCard: React.FC<{ lane: Lane }> = ({ lane }) => (
         <div className="w-full h-0.5 bg-gray-700 absolute transform -rotate-45"></div>
       </div>
       <span className="text-orange-500 z-10 font-medium">video</span> */}
-      <VideoPlayer shouldPlay={true} src={lane.src}/> 
+      <VideoPlayer shouldPlay={lane.signal == "green" ? true : false} src={lane.src}/> 
 
     </div>
   </div>

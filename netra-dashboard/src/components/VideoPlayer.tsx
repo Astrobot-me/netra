@@ -25,6 +25,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ shouldPlay, src }) => {
       className="w-full h-auto rounded"
       loop
       muted
+      
     />
   );
 };

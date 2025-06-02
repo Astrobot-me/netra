@@ -19,7 +19,7 @@ type Props = {
   liveData: AccidentData | null;
 };
 
-const LOCAL_STORAGE_KEY = 'accident_history';
+export const LOCAL_STORAGE_KEY = 'accident_history';
 
 const AccidentPanel: React.FC<Props> = ({ liveData }) => {
   const [accidents, setAccidents] = useState<AccidentData[]>([]);
@@ -51,6 +51,8 @@ const AccidentPanel: React.FC<Props> = ({ liveData }) => {
     toast.success(`🚑 Notifying Emergency Dispatch Unit for ${accident.address}`);
     // Future placeholder for backend/Firestore integration
     const obj = await addDocument('accidents_data', latestAccident);
+
+    console.log("Dispatched Accident Data:", obj);
 
     if(obj) {
       toast.info(`🚑 Emergency Dispatch Unit Notified`);

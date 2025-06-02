@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import LaneCard from './components/LaneCard';
-import AccidentPanel, { type AccidentData } from './components/AccidentPanel';
+import AccidentPanel, { LOCAL_STORAGE_KEY, type AccidentData } from './components/AccidentPanel';
 import DashboardStats from './components/DashboardStats';
 import Footer from './components/Footer';
 import { doc, getDoc } from 'firebase/firestore'
@@ -10,6 +10,8 @@ import Toggle from './components/ui/ToggleButton';
 import { fetchLatestSession } from './firestore/firebaseClient';
 import YoloStream from './components/YoloSocket';
 import { calculateVehicleDensityFromLanes } from './util/calculateDensity';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 
 type Lane = {
@@ -38,6 +40,18 @@ const App: React.FC = () => {
 
   type Session = { id: string } | null;
   const [latestSession, setLatestSession] = useState<Session>(null);
+
+
+  const handleReset = () => {
+   
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify([])); // This sets the value to an empty array as a string
+    
+    // If you want to completely remove the item instead of setting to "null":
+    // localStorage.removeItem(itemId);
+    toast.warn(`LocalStorage item "${LOCAL_STORAGE_KEY}" has been reset.`);
+    setAccidents([]); // Clear the accidents state
+    console.log(`LocalStorage item "${LOCAL_STORAGE_KEY}" has been reset.`);
+  };
 
   useEffect(() => {
     let intervalIds: NodeJS.Timeout[] = [];
@@ -109,14 +123,14 @@ const App: React.FC = () => {
                 return {
                   ...item,
                   signal: String(laneData.north.state).toLowerCase(),
-                  timing: Math.round(laneData.north.time_remaining)
+                  timing: Math.round(laneData.north.time_remaining) // Convert to seconds
                 }
 
               } else if (item.lane_dir == "south") {
                 return {
                   ...item,
                   signal: String(laneData.south.state).toLowerCase(),
-                  timing: Math.round(laneData.south.time_remaining)
+                  timing: Math.round(laneData.south.time_remaining) // Convert to seconds
                 }
               } else if (item.lane_dir == "east") {
                 return {
@@ -144,7 +158,7 @@ const App: React.FC = () => {
       } catch (error) {
         console.error("Error fetching session document:", error);
       }
-    }, 3000);
+    }, 1000);
 
     return () => clearInterval(intervalId);
   }, [latestSession]);
@@ -196,7 +210,9 @@ const App: React.FC = () => {
       </div>
 
 
-      <Footer />
+
+
+      <Footer handleReset={handleReset} />
     </div>
   );
 };

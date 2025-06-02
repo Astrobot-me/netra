@@ -24,10 +24,10 @@ video_path = "videos/accident_trim.mp4"
 
 # Roorkee location data
 roorkee_locations = [
-    {"name": "RIT ROORKEE", "latitude": 29.9058, "longitude": 77.8375},
-    {"name": "IIT ROORKEE", "latitude": 29.5152, "longitude": 77.5347},
-    {"name": "Ramnagar Roorkee", "latitude": 29.8745, "longitude": 77.8696},
-    {"name": "Quantum University", "latitude": 29.394764, "longitude": 79.126503},
+    {"name": "Cawnpore Dwar Military Contonment Roorkee India", "latitude": 29.856335, "longitude": 77.888219},
+    {"name": "Rampur Chungi, Roorkee India", "latitude": 29.884123, "longitude": 77.877516},
+    {"name": "Ramnagar, Roorkee India", "latitude": 29.873383, "longitude": 77.876879},
+    {"name": "Bhagwanpur Highway, Roorkee India", "latitude": 29.939262, "longitude": 77.812466},
 ]
 
 @app.websocket("/ws")

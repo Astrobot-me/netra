@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { collection, getDocs, getFirestore, limit, orderBy, query } from "firebase/firestore";
+import { addDoc, collection, getDocs, getFirestore, limit, orderBy, query } from "firebase/firestore";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -40,5 +40,16 @@ export const fetchLatestSession = async () => {
   } catch (error) {
     console.error('Error fetching latest session:', error);
     return null;
+  }
+};
+
+export const addDocument = async (collectionName: string, data : any) => {
+  try {
+    const docRef = await addDoc(collection(db, collectionName), data);
+    console.log("Document written with ID:", docRef.id);
+    return docRef;
+  } catch (error) {
+    console.error("Error adding document:", error);
+    throw error;
   }
 };

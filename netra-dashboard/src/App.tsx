@@ -4,11 +4,13 @@ import LaneCard from './components/LaneCard';
 import AccidentPanel, { type AccidentData } from './components/AccidentPanel';
 import DashboardStats from './components/DashboardStats';
 import Footer from './components/Footer';
-// import { getDocs, collection } from 'firebase/firestore'
-// import { db } from './firestore/firebaseClient';
+import { doc, getDoc } from 'firebase/firestore'
+import { db } from './firestore/firebaseClient';
 import Toggle from './components/ui/ToggleButton';
 import { fetchLatestSession } from './firestore/firebaseClient';
 import YoloStream from './components/YoloSocket';
+import { calculateVehicleDensityFromLanes } from './util/calculateDensity';
+
 
 type Lane = {
   id: number;
@@ -31,45 +33,14 @@ const App: React.FC = () => {
 
 
   const [accidents, setAccidents] = useState<AccidentData[]>([]);
+  const [stateData, setStateData] = useState<{ id: string;[key: string]: any }[]>([]);
+  const [densityStats, setDensityStats] = useState({ totalVehicles: 24, densityPercent: 56 });
+
   type Session = { id: string } | null;
   const [latestSession, setLatestSession] = useState<Session>(null);
 
-
   useEffect(() => {
     let intervalIds: NodeJS.Timeout[] = [];
-
-    const fetchLanes = async () => {
-      try {
-        // const snapshot = await getDocs(collection(db, 'traffic_sessions'));
-        // const fetched = snapshot.docs.map(doc => ({ id: Number(doc.id), ...doc.data() }));
-        // console.log(fetched);
-
-        // setLanes(prevLanes =>
-        //   prevLanes.map(lane => {
-        //     const updated = fetched.find(f => f.id === lane.id);
-        //     return updated
-        //       ? {
-        //         ...lane,
-        //         signal: updated.signal ?? lane.signal,
-        //         timing: updated.timing ?? lane.timing,
-        //       }
-        //       : lane;
-        //   })
-        // );
-      } catch (error) {
-        console.error("Error fetching lanes from Firestore:", error);
-      }
-    };
-
-    const runRealtimeMode = async () => {
-      const session = await fetchLatestSession();
-      console.log("current Session", session)
-      setLatestSession(session || null);
-
-      await fetchLanes(); // initial fetch
-      const firestoreInterval = setInterval(fetchLanes, 3000);
-      intervalIds.push(firestoreInterval);
-    };
 
     const runOfflineMode = () => {
       intervalIds = lanes.map((lane) =>
@@ -89,16 +60,94 @@ const App: React.FC = () => {
       );
     };
 
+    const runRealtimeMode = async () => {
+      const session = await fetchLatestSession();
+      console.log("Fetched Session:", session?.id);
+      setLatestSession(session || null);
+    };
+
     if (toggle) {
       runRealtimeMode();
     } else {
-      // console.log("Running on Offline Mode");
       runOfflineMode();
+      setDensityStats({ totalVehicles: 45, densityPercent: 56 })
     }
 
-    return () => intervalIds.forEach(clearInterval); // Cleanup all intervals
-  }, [toggle, lanes]);
+    return () => {
+      intervalIds.forEach(clearInterval);
+      setLatestSession(null); // cleanup session when exiting realtime
+    };
+  }, [toggle]);
 
+
+
+  useEffect(() => {
+    if (!latestSession || !latestSession.id) return;
+
+    const intervalId = setInterval(async () => {
+      try {
+        const sessionDocRef = doc(db, "traffic_sessions", latestSession.id);
+        const sessionDocSnap = await getDoc(sessionDocRef);
+
+        if (sessionDocSnap.exists()) {
+          const sessionData = sessionDocSnap.data();
+          console.log("Live Lane Data:", sessionData);
+          setStateData([{ id: latestSession.id, ...sessionData }]);
+          const laneData = sessionData.timesteps[sessionData.timesteps.length - 1].lanes;
+
+          // calculating vehicle density
+          if (laneData) {
+            const stats = calculateVehicleDensityFromLanes(laneData);
+            setDensityStats(stats);
+          }
+
+
+          setLanes(prevData => {
+
+            const updated = prevData.map(item => {
+              if (item.lane_dir == "north") {
+                return {
+                  ...item,
+                  signal: String(laneData.north.state).toLowerCase(),
+                  timing: Math.round(laneData.north.time_remaining)
+                }
+
+              } else if (item.lane_dir == "south") {
+                return {
+                  ...item,
+                  signal: String(laneData.south.state).toLowerCase(),
+                  timing: Math.round(laneData.south.time_remaining)
+                }
+              } else if (item.lane_dir == "east") {
+                return {
+                  ...item,
+                  signal: String(laneData.east.state).toLowerCase(),
+                  timing: Math.round(laneData.east.time_remaining)
+                }
+              } else if (item.lane_dir == "west") {
+                return {
+                  ...item,
+                  signal: String(laneData.west.state).toLowerCase(),
+                  timing: Math.round(laneData.west.time_remaining)
+                }
+              } else {
+                return item
+              }
+            })
+
+
+            return updated
+          })
+
+
+        }
+      } catch (error) {
+        console.error("Error fetching session document:", error);
+      }
+    }, 3000);
+
+    return () => clearInterval(intervalId);
+  }, [latestSession]);
 
 
   return (
@@ -117,7 +166,9 @@ const App: React.FC = () => {
         </div>
 
       </div>
-      <DashboardStats percent={39} connectionStatus={toggle} />
+      <DashboardStats densityStat={{...densityStats , percent: densityStats.densityPercent, vehicle_count : densityStats.totalVehicles}} connectionStatus={toggle} mapdata={{lat: accidents[accidents.length - 1]?.latitude , long: accidents[accidents.length - 1]?.longitude}} />
+
+      
       <div className="flex flex-col lg:flex-row mt-10 gap-6">
         {/* Lane Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow px-4 py-6 bg-gray-900">

@@ -1,5 +1,5 @@
 // === React Frontend (YoloStream.jsx) ===
-import React, { useEffect, useRef } from 'react';
+import  { useEffect, useRef } from 'react';
 import type { AccidentData } from './AccidentPanel';
 type YoloStreamProps = {
     setData: (data: AccidentData) => void

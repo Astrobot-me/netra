@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { addDocument } from '../firestore/firebaseClient';
 
 export type AccidentData = {
   detections: number;
@@ -11,6 +12,8 @@ export type AccidentData = {
   address: string;
   timestamp: string;
 };
+
+
 
 type Props = {
   liveData: AccidentData | null;
@@ -44,9 +47,14 @@ const AccidentPanel: React.FC<Props> = ({ liveData }) => {
     }
   }, [liveData]);
 
-  const handleDispatch = (accident: AccidentData) => {
+  const handleDispatch = async (accident: AccidentData) => {
     toast.success(`🚑 Notifying Emergency Dispatch Unit for ${accident.address}`);
     // Future placeholder for backend/Firestore integration
+    const obj = await addDocument('accidents_data', latestAccident);
+
+    if(obj) {
+      toast.info(`🚑 Emergency Dispatch Unit Notified`);
+    }
   };
 
   return (

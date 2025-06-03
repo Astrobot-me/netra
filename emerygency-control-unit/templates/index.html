@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ambulance Finder</title>
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+
+  <!-- Leaflet Routing Machine CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css"
+  />
+
+  <!-- Firebase SDKs (use version 9+ for modular approach) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    #map {
+      height: 600px;
+      width: 100%;
+    }
+    #searchAmbulanceBtn {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <button id="searchAmbulanceBtn">Search Ambulance</button>
+  <div id="map"></div>
+
+  
+  <div style="padding: 1rem; background: #f0f0f0; margin-top: 1rem;">
+    <h3>🟢 Traffic Lights on Route</h3>
+    <ul id="trafficList" style="list-style: none; padding-left: 0;"></ul>
+  </div>
+    <!-- Add this to your HTML -->
+    <div class="accident-info">
+      <h3>Accident Snapshot</h3>
+      <img id="accidentImage" src="" alt="Accident Image" style="max-width: 100%; border: 2px solid #ccc;"/>
+      <p><strong>Location:</strong> <span id="accidentAddress">Fetching...</span></p>
+    </div>
+
+
+
+  <!-- Socket.IO -->
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Leaflet Routing Machine JS -->
+  <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+  <!-- Your app code -->
+  <script src="/static/js/script.js"></script>
+
+</body>
+</html>

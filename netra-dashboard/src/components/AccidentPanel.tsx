@@ -39,13 +39,34 @@ const AccidentPanel: React.FC<Props> = ({ liveData }) => {
   useEffect(() => {
     if (liveData && liveData.accident_state) {
       setAccidents((prev) => {
+        const latest = prev[0];
+
+        // Avoid pushing if it's a duplicate address
+        if (latest && latest.address === liveData.address) {
+          return prev;
+        }
+
+        // New accident detected, prepend to the array
         const updated = [liveData, ...prev];
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
-        return updated;
+
+        // Keep only the latest 50 records
+        const limited = updated.slice(0, 50);
+
+        // Save to localStorage
+        try {
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(limited));
+        } catch (e) {
+          console.error('❌ Failed to save accident history to localStorage:', e);
+          toast.error('Storage limit exceeded. Some data may not be saved.');
+        }
+
+        return limited;
       });
+
       setLatestAccident(liveData);
     }
   }, [liveData]);
+
 
   const handleDispatch = async (accident: AccidentData) => {
     toast.success(`🚑 Notifying Emergency Dispatch Unit for ${accident.address}`);
@@ -54,7 +75,7 @@ const AccidentPanel: React.FC<Props> = ({ liveData }) => {
 
     console.log("Dispatched Accident Data:", obj);
 
-    if(obj) {
+    if (obj) {
       toast.info(`🚑 Emergency Dispatch Unit Notified`);
     }
   };
